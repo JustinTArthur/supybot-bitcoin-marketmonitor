@@ -110,6 +110,7 @@ class Market(callbacks.Plugin):
             'cbx': 'CampBX',
             'coinbase': 'Coinbase',
             'krk': 'Kraken',
+            'lunar': 'Coinbase Lunar',
             'okc': 'OKCoin'
         }
         self.depth_supported_markets = {
@@ -783,6 +784,39 @@ class Market(callbacks.Plugin):
                             'high': None,
                             'avg': None})
         self.ticker_cache['coinbase'+currency] = {'time':time.time(), 'ticker':stdticker}
+        return stdticker
+
+    def _getLunarTicker(self, currency):
+        try:
+            cachedvalue = self.ticker_cache['lunar'+currency]
+            if time.time() - cachedvalue['time'] < 3:
+                return cachedvalue['ticker']
+        except KeyError:
+            pass
+        stdticker = {}
+        try:
+            ticker = json.load(urlopen('https://api.exchange.coinbase.com/products/BTC-USD/ticker'))
+            aggregates = json.load(urlopen('https://api.exchange.coinbase.com/products/BTC-USD/stats'))
+        except:
+            raise  # will get caught later
+        if currency != "USD":
+            stdticker = {'warning': 'using yahoo currency conversion'}
+            try:
+                yahoo_rate = float(self._queryYahooRate("USD", currency))
+            except:
+                stdticker = {'error': 'failed to get currency conversion from yahoo.'}
+                return stdticker
+        else:
+            yahoo_rate = 1
+        stdticker.update({'bid': None,
+                          'ask': None,
+                          'last': float(ticker['price']) * yahoo_rate,
+                          'vol': float(aggregates['volume']),
+                          'low': float(aggregates['low']),
+                          'high': float(aggregates['high']),
+                          'avg': None
+        })
+        self.ticker_cache['lunar'+currency] = {'time': time.time(), 'ticker': stdticker}
         return stdticker
 
     def _getBitmyntTicker(self, currency):
