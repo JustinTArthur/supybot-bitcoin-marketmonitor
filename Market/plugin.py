@@ -150,9 +150,9 @@ class Market(callbacks.Plugin):
         except KeyError:
             pass
         try:
-            data = urlopen('http://data.mtgox.com/api/1/BTCUSD/depth/full').read()
+            data = urlopen('http://data.mtgox.com/api/1/BTCUSD/depth/full')
             vintage = time.time()
-            depth = json.loads(data)['return']
+            depth = json.load(data)['return']
             depth['bids'].reverse() # bids should be listed in descending order
             self.depth_cache['mtgox'] = {'time':vintage, 'depth':depth}
         except:
@@ -176,9 +176,9 @@ class Market(callbacks.Plugin):
             yahoorate = float(self._queryYahooRate('USD', currency))
         try:
             stddepth = {}
-            data = urlopen('https://www.bitstamp.net/api/order_book/').read()
+            data = urlopen('https://www.bitstamp.net/api/order_book/')
             vintage = time.time()
-            depth = json.loads(data)
+            depth = json.load(data)
             # make consistent format with mtgox
             depth['bids'] = [{'price':float(b[0])*yahoorate, 'amount':float(b[1])} for b in depth['bids']]
             depth['asks'] = [{'price':float(b[0])*yahoorate, 'amount':float(b[1])} for b in depth['asks']]
@@ -203,13 +203,13 @@ class Market(callbacks.Plugin):
         yahoorate = 1
         try:
             stddepth = {}
-            data = urlopen('https://api.kraken.com/0/public/Depth?pair=XBT%s' % (currency,)).read()
-            depth = json.loads(data)
+            data = urlopen('https://api.kraken.com/0/public/Depth?pair=XBT%s' % (currency,))
+            depth = json.load(data)
             vintage = time.time()
             if len(depth['error']) != 0:
                 if "Unknown asset pair" in depth['error'][0]:
                     # looks like we have unsupported currency, default to EUR
-                    depth = json.loads(urlopen("https://api.kraken.com/0/public/Depth?pair=XBTEUR").read())
+                    depth = json.load(urlopen("https://api.kraken.com/0/public/Depth?pair=XBTEUR"))
                     if len(depth['error']) != 0:
                         return # oh well try again later
                     try:
@@ -243,8 +243,8 @@ class Market(callbacks.Plugin):
         yahoorate = 1
         try:
             stddepth = {}
-            data = urlopen('https://api.bitfinex.com/v1/book/BTCUSD').read()
-            depth = json.loads(data)
+            data = urlopen('https://api.bitfinex.com/v1/book/BTCUSD')
+            depth = json.load(data)
             vintage = time.time()
             if depth.has_key('message'):
                 return # looks like an error, try again later
@@ -279,13 +279,13 @@ class Market(callbacks.Plugin):
         yahoorate = 1
         try:
             stddepth = {}
-            data = urlopen('https://btc-e.com/api/2/btc_%s/depth' % (currency.lower(),)).read()
-            depth = json.loads(data)
+            data = urlopen('https://btc-e.com/api/2/btc_%s/depth' % (currency.lower(),))
+            depth = json.load(data)
             vintage = time.time()
             if depth.has_key('error'):
                 if "invalid pair" in depth['error']:
                     # looks like we have unsupported currency, default to EUR
-                    depth = json.loads(urlopen("https://btc-e.com/api/2/btc_usd/depth").read())
+                    depth = json.load(urlopen("https://btc-e.com/api/2/btc_usd/depth"))
                     if depth.has_key('error'):
                         return # oh well try again later
                     try:
@@ -319,8 +319,8 @@ class Market(callbacks.Plugin):
         yahoorate = 1
         try:
             stddepth = {}
-            data = urlopen('https://bitcoin-central.net/api/v1/data/eur/depth').read()
-            depth = json.loads(data)
+            data = urlopen('https://bitcoin-central.net/api/v1/data/eur/depth')
+            depth = json.load(data)
             vintage = time.time()
             if currency != 'EUR':
                 yahoorate = float(self._queryYahooRate('EUR', currency))
@@ -352,9 +352,9 @@ class Market(callbacks.Plugin):
         if currency != 'CNY':
             yahoorate = float(self._queryYahooRate('CNY', currency))
         try:
-            data = urlopen('https://data.btcchina.com/data/orderbook').read()
+            data = urlopen('https://data.btcchina.com/data/orderbook')
             vintage = time.time()
-            depth = json.loads(data)
+            depth = json.load(data)
             # make consistent format with mtgox
             depth['bids'] = [{'price':float(b[0])*yahoorate, 'amount':float(b[1])} for b in depth['bids']]
             depth['asks'] = [{'price':float(b[0])*yahoorate, 'amount':float(b[1])} for b in depth['asks']]
@@ -376,18 +376,18 @@ class Market(callbacks.Plugin):
             except KeyError:
                 pass
             try:
-                json_data = urlopen("https://data.mtgox.com/api/2/BTC%s/money/ticker" % (currency.upper(),)).read()
-                ticker = json.loads(json_data)
+                json_data = urlopen("https://data.mtgox.com/api/2/BTC%s/money/ticker" % (currency.upper(),))
+                ticker = json.load(json_data)
             except Exception, e:
                 ticker = {"result":"error", "error":e}
             try:
-                ftj = urlopen("https://data.mtgox.com/api/2/BTC%s/money/ticker_fast" % (currency.upper(),)).read()
-                tf = json.loads(ftj)
+                ftj = urlopen("https://data.mtgox.com/api/2/BTC%s/money/ticker_fast" % (currency.upper(),))
+                tf = json.load(ftj)
             except Exception, e:
                 tf = {"result":"error", "error":e}
             if ticker['result'] == 'error' and currency != 'USD':
                 # maybe currency just doesn't exist, so try USD and convert.
-                ticker = json.loads(urlopen("https://data.mtgox.com/api/2/BTCUSD/money/ticker").read())
+                ticker = json.load(urlopen("https://data.mtgox.com/api/2/BTCUSD/money/ticker"))
                 try:
                     stdticker = {'warning':'using yahoo currency conversion'}
                     yahoorate = float(self._queryYahooRate('USD', currency))
@@ -423,12 +423,12 @@ class Market(callbacks.Plugin):
             pair = '%s_btc' % (currency.lower(),)
         else:
             pair = 'btc_%s' % (currency.lower(),)
-        json_data = urlopen("https://btc-e.com/api/2/%s/ticker" % (pair,)).read()
-        ticker = json.loads(json_data)
+        json_data = urlopen("https://btc-e.com/api/2/%s/ticker" % (pair,))
+        ticker = json.load(json_data)
         yahoorate = 1
         if ticker.has_key('error'):
             # maybe we have unsupported currency
-            ticker = json.loads(urlopen("https://btc-e.com/api/2/btc_usd/ticker").read())
+            ticker = json.load(urlopen("https://btc-e.com/api/2/btc_usd/ticker"))
             if ticker.has_key('error'):
                 stdticker = {'error':ticker['error']}
                 return stdticker
@@ -466,10 +466,10 @@ class Market(callbacks.Plugin):
         except KeyError:
             pass
         stdticker = {}
-        json_data = urlopen("https://www.bitstamp.net/api/ticker/").read()
-        ticker = json.loads(json_data)
+        json_data = urlopen("https://www.bitstamp.net/api/ticker/")
+        ticker = json.load(json_data)
         try:
-            bcharts = json.loads(urlopen("http://api.bitcoincharts.com/v1/markets.json").read())
+            bcharts = json.load(urlopen("http://api.bitcoincharts.com/v1/markets.json"))
             bcharts = filter(lambda x: x['symbol'] == 'bitstampUSD', bcharts)[0]
             avg = float(bcharts['avg'])
         except:
@@ -500,13 +500,13 @@ class Market(callbacks.Plugin):
         except KeyError:
             pass
         stdticker = {}
-        json_data = urlopen("https://api.kraken.com/0/public/Ticker?pair=XBT%s" % (currency,)).read()
-        ticker = json.loads(json_data)
+        json_data = urlopen("https://api.kraken.com/0/public/Ticker?pair=XBT%s" % (currency,))
+        ticker = json.load(json_data)
         yahoorate = 1
         if len(ticker['error']) != 0:
             if "Unknown asset pair" in ticker['error'][0]:
                 # looks like we have unsupported currency
-                ticker = json.loads(urlopen("https://api.kraken.com/0/public/Ticker?pair=XBTEUR").read())
+                ticker = json.load(urlopen("https://api.kraken.com/0/public/Ticker?pair=XBTEUR"))
                 if len(ticker['error']) != 0:
                     stdticker = {'error':ticker['error']}
                     return stdticker
@@ -538,8 +538,8 @@ class Market(callbacks.Plugin):
         except KeyError:
             pass
         stdticker = {}
-        json_data = urlopen("https://bitcoin-central.net/api/v1/data/eur/ticker").read()
-        ticker = json.loads(json_data)
+        json_data = urlopen("https://bitcoin-central.net/api/v1/data/eur/ticker")
+        ticker = json.load(json_data)
         if ticker.has_key('errors'):
             stdticker = {'error':ticker['errors']}
             return stdticker
@@ -569,8 +569,8 @@ class Market(callbacks.Plugin):
         except KeyError:
             pass
         stdticker = {}
-        json_data = urlopen("https://www.okcoin.cn/api/ticker.do?symbol=btc_cny").read()
-        ticker = json.loads(json_data)['ticker']
+        json_data = urlopen("https://www.okcoin.cn/api/ticker.do?symbol=btc_cny")
+        ticker = json.load(json_data)['ticker']
         yahoorate = 1
         if currency != 'CNY':
             try:
@@ -600,10 +600,10 @@ class Market(callbacks.Plugin):
             pair = 'ltcbtc'
         else:
             pair = 'btc%s' % (currency.lower(),)
-        json_data = urlopen("https://api.bitfinex.com/v1/ticker/%s" % (pair,)).read()
-        spotticker = json.loads(json_data)
-        json_data = urlopen("https://api.bitfinex.com/v1/today/%s" % (pair,)).read()
-        dayticker = json.loads(json_data)
+        json_data = urlopen("https://api.bitfinex.com/v1/ticker/%s" % (pair,))
+        spotticker = json.load(json_data)
+        json_data = urlopen("https://api.bitfinex.com/v1/today/%s" % (pair,))
+        dayticker = json.load(json_data)
         if spotticker.has_key('message') or dayticker.has_key('message'):
             stdticker = {'error':spotticker.get('message') or dayticker.get('message')}
         else:
@@ -634,8 +634,8 @@ class Market(callbacks.Plugin):
         except KeyError:
             pass
         stdticker = {}
-        json_data = urlopen("http://api.bitcoincharts.com/v1/markets.json").read()
-        ticker = json.loads(json_data)
+        json_data = urlopen("http://api.bitcoincharts.com/v1/markets.json")
+        ticker = json.load(json_data)
         trades = urlopen('http://api.bitcoincharts.com/v1/trades.csv?symbol=btcdeEUR').readlines()
         last = float(trades[-1].split(',')[1])
         yahoorate = 1
@@ -666,12 +666,12 @@ class Market(callbacks.Plugin):
             pass
         stdticker = {}
         try:
-            json_data = urlopen("http://api.bitcoincharts.com/v1/markets.json").read()
-            ticker = json.loads(json_data)
+            json_data = urlopen("http://api.bitcoincharts.com/v1/markets.json")
+            ticker = json.load(json_data)
             ticker = filter(lambda x: x['symbol'] == 'cbxUSD', ticker)[0]
         except:
             ticker = {'low':0, 'high':0, 'volume':0, 'avg':0}
-        cbx = json.loads(urlopen('http://campbx.com/api/xticker.php').read())
+        cbx = json.load(urlopen('http://campbx.com/api/xticker.php'))
         yahoorate = 1
         if currency != 'USD':
             stdticker = {'warning':'using yahoo currency conversion'}
@@ -699,11 +699,11 @@ class Market(callbacks.Plugin):
             pass
         stdticker = {}
         try:
-            json_data = urlopen("http://api.bitcoincharts.com/v1/markets.json").read()
-            bcharts = json.loads(json_data)
+            json_data = urlopen("http://api.bitcoincharts.com/v1/markets.json")
+            bcharts = json.load(json_data)
         except:
             bcharts = [{'symbol':'btcnCNY','avg':None}]
-        btcchina = json.loads(urlopen('https://data.btcchina.com/data/ticker').read())['ticker']
+        btcchina = json.load(urlopen('https://data.btcchina.com/data/ticker'))['ticker']
         yahoorate = 1
         if currency not in ['CNY', 'RMB']:
             stdticker = {'warning':'using yahoo currency conversion'}
@@ -735,7 +735,7 @@ class Market(callbacks.Plugin):
         except KeyError:
             pass
         try:
-            ticker = json.loads(urlopen('https://api.bitcoinaverage.com/ticker/%s' % (currency,)).read())
+            ticker = json.load(urlopen('https://api.bitcoinaverage.com/ticker/%s' % (currency,)))
         except urllib2.HTTPError:
             stdticker = {'error':'Unsupported currency.'}
             return stdticker
@@ -761,9 +761,9 @@ class Market(callbacks.Plugin):
             pass
         stdticker = {}
         try:
-            last = json.loads(urlopen('https://coinbase.com/api/v1/prices/spot_rate').read())['amount']
-            ask = json.loads(urlopen('https://coinbase.com/api/v1/prices/buy').read())['amount']
-            bid = json.loads(urlopen('https://coinbase.com/api/v1/prices/sell').read())['amount']
+            last = json.load(urlopen('https://coinbase.com/api/v1/prices/spot_rate'))['amount']
+            ask = json.load(urlopen('https://coinbase.com/api/v1/prices/buy'))['amount']
+            bid = json.load(urlopen('https://coinbase.com/api/v1/prices/sell'))['amount']
         except:
             raise # will get caught later
         if currency != 'USD':
@@ -795,10 +795,10 @@ class Market(callbacks.Plugin):
         stdticker = {}
         yahoorate = 1
         if currency in ['EUR','NOK']:
-            ticker = json.loads(urlopen("http://bitmynt.no/ticker-%s.pl" % (currency.lower(),)).read())
+            ticker = json.load(urlopen("http://bitmynt.no/ticker-%s.pl" % (currency.lower(),)))
             ticker = ticker[currency.lower()]
         else:
-            ticker = json.loads(urlopen("http://bitmynt.no/ticker-eur.pl").read())
+            ticker = json.load(urlopen("http://bitmynt.no/ticker-eur.pl"))
             ticker = ticker['eur']
             stdticker = {'warning':'using yahoo currency conversion'}
             try:
@@ -825,7 +825,7 @@ class Market(callbacks.Plugin):
             pass
         stdticker = {}
         try:
-            ticker = json.loads(urlopen('https://api.buttercoin.com/v1/ticker').read())
+            ticker = json.load(urlopen('https://api.buttercoin.com/v1/ticker'))
         except:
             raise  # will get caught later
         buttercoin_currency = ticker['currency']
@@ -1295,8 +1295,8 @@ class Market(callbacks.Plugin):
 #        Retrieve mtgox order processing lag. If --raw option is specified
 #        only output the raw number of seconds. Otherwise, dress it up."""
 #        try:
-#            json_data = urlopen("https://mtgox.com/api/2/money/order/lag").read()
-#            lag = json.loads(json_data)
+#            json_data = urlopen("https://mtgox.com/api/2/money/order/lag")
+#            lag = json.load(json_data)
 #            lag_secs = lag['data']['lag_secs']
 #        except:
 #            irc.error("Problem retrieving gox lag. Try again later.")
@@ -1368,8 +1368,8 @@ class Market(callbacks.Plugin):
         the time window for the average, and can be '24h', '7d', or '30d'.
         """
         try:
-            data = urlopen('http://api.bitcoincharts.com/v1/weighted_prices.json').read()
-            j = json.loads(data)
+            data = urlopen('http://api.bitcoincharts.com/v1/weighted_prices.json')
+            j = json.load(data)
             curs = j.keys()
             curs.remove('timestamp')
         except:
